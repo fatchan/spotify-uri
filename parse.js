@@ -1,26 +1,14 @@
-
 /**
  * Module dependencies.
- */
-
-var url = require('url');
-var qs = require('querystring');
-
-/**
+ */ var url = require('url'); var qs = require('querystring'); /**
  * Module exports.
- */
-
-module.exports = parse;
-
-/**
+ */ module.exports = parse; /**
  * Parses a "Spotify URI".
  *
  * @param {String} uri
  * @return {Object} parsed Spotify uri object
  * @api public
- */
-
-function parse (uri) {
+ */ function parse (uri) {
   var rtn;
   var parts;
   if ('object' == typeof uri) {
@@ -36,13 +24,18 @@ function parse (uri) {
     parseParts(parts, rtn);
   } else if ('embed.spotify.com' == parsed.hostname) {
     return parse(qs.parse(parsed.query).uri);
-  } else { // http: or https:
-    parts = parsed.pathname.split('/');
-    parseParts(parts, rtn);
+  } else if (parsed.host && parsed.host.includes('spotify.')) { // http: or https:
+    if (parsed.pathname) {
+      parts = parsed.pathname.split('/');
+      parseParts(parts, rtn);
+	} else {
+	  rtn.type = null; //not a spotify playlist URI or link
+	}
+  } else {
+	rtn.type = null;
   }
   return rtn;
 }
-
 function parseParts (parts, obj) {
   var len = parts.length;
   if ('search' == parts[1]) {
@@ -71,14 +64,11 @@ function parseParts (parts, obj) {
     obj.id = parts[2];
   }
 }
-
 /**
  * URL-decode, also replaces `+` (plus) chars with ` ` (space).
  *
  * @param {String} str
  * @api private
- */
-
-function decode (str) {
+ */ function decode (str) {
   return decodeURIComponent(str).replace(/\+/g, ' ');
 }
